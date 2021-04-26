@@ -20,4 +20,4 @@ exe:
 	${CC} ${LIBS} ${FLAGS} -o ${EXEC} ${CSRC}
 
 clean:
-	rm -vf ${TEX} ${DVI} ${CSRC} ${EXEC} *.idx *.log *.pdf *.ps *.scn *.toc
+	rm -vf ${TEX} ${DVI} ${CSRC} ${EXEC} *.idx *.log *.ps *.scn *.toc
