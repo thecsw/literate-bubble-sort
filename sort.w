@@ -1,9 +1,29 @@
-\nocon
-\datethis
 
-@* Visualizing Bubble Sort in terminal. This program is trying to
+\datethis
+\def\SPARC{SPARC\-\kern.1em station}
+
+\def\topofcontents{\null\vfill
+  \centerline{\titlefont Visualizing sorting algorithms in terminal}
+  \vskip 15pt
+  \vfill}
+\def\botofcontents{\vfill
+\noindent
+Copyright \copyright\ 2021 Sandy Urazayev -- University of Kansas
+\bigskip\noindent
+Permission is granted to make and distribute verbatim copies of this
+document provided that the copyright notice and this permission notice
+are preserved on all copies.
+
+\smallskip\noindent
+Permission is granted to copy and distribute modified versions of this
+document under the conditions for verbatim copying, provided that the
+entire resulting derived work is given a different name and distributed
+under the terms of a permission notice identical to this one.
+}
+
+@* Visualizing sorting algorithms in terminal. This program is trying to
 visualize the process of sorting a shuffled array of numerical
-values by applying the Bubble Sort algorithm.
+values by applying the Bubble Sort algorithm. ({\it maybe} more to come)
 
 I originally wrote this code when I was a junior is high school,
 basically, just for fun. It's been some time since I've even seen
@@ -18,11 +38,12 @@ by this \.{CWEB} program \.{sort.w}
 @c
 @<Header files to include@>@/
 @<Global variables@>@/
-@<Functions@>@/
+@<Utility functions@>@/
+@<Sorting algorithms@>@/
 @<The main program@>
 
 @ We must include libraries to interact with the terminal, allocate
-and free heap memory, add delay in between "animation frames", and
+and free heap memory, add delay in between ``animation frames'', and
 record the program's performance.
 
 @<Header files...@>=
@@ -57,6 +78,7 @@ int main(void)
         @<Initialize the terminal screen@>;
         @<Prepare the array for sorting@>;
         @<Run the animation process@>;
+        @<Show the sorting results@>;
         @<Deallocate terminal and array@>;
         return OK;
 }
@@ -105,10 +127,6 @@ screen between each swap in the array. More on the reasoning and efficiency late
 the last parameter, we can tell |print_array| whether to make the print the array
 with a blinking effect.
 
-Sequence of |mvprintw| calls simply shows some results, such as number of elements
-in the array, algorithm (wink, wink, you can modify it to support other algorithms),
-and the time taken to sort and animate.
-
 @<Run the animation process@>=
 print_array(arr, arr_size, MAX_Y, 0);
 clock_t start = clock();
@@ -116,6 +134,18 @@ bubble_sort(arr, arr_size);
 clock_t end = clock();
 print_array(arr, arr_size, MAX_Y, 1);
 double exec_time = ((double)(end - start) / CLOCKS_PER_SEC);
+
+@ After running the animation, it's good to put a couple of more lines on the screen,
+such as showing the sorting algorithm, execution time, etc.
+
+Sequence of |mvprintw| calls simply shows some results, such as number of elements
+in the array, algorithm (wink, wink, you can modify it to support other algorithms),
+and the time taken to sort and animate.
+
+The actual placements of those lines is hardcoded for them to be on the top left corner
+of the screen, it's convenient and doesn't overlap with the blinking array columns.
+
+@<Show the sorting res...@>=
 mvprintw(4, 1, "Sorting algorithm:            Bubble Sort");
 mvprintw(5, 1, "Number of array elements:     %d", arr_size);
 mvprintw(6, 1, "Time taken to sort the array: %f", exec_time);
@@ -134,7 +164,7 @@ endwin();
 @ Initializing an array with constant rate of change is pretty straightforward.
 The only quirk is that the absolute lowest value is set to 0 by default.
 
-@<Functions@>=
+@<Utility functions@>=
 void init_arr(arr, size, max_value)
 int *arr; /* The actual array to initialize */
 int size; /* The size of the passed array */
@@ -148,25 +178,32 @@ int max_value; /* The maximum value in the array */
 random seed so that we can pick random indices in the array, which will get
 swapped
 
-@<Functions@>=
+@<Utility functions@>=
 void shuffle(arr, size)
 int *arr; /* The array that needs to be shuffled */
 int size; /* The size of the passed array */
 {
-	srand(time(NULL));
+	srand(time(NULL)); /* Initialize a random seed */
 	for (size_t i = 0; i < size; i++) {
-		int temp = arr[i];
-		int j = rand() % size;
-		arr[i] = arr[j];
-		arr[j] = temp;
+        	int j = rand() % size;
+                @<Swap elements |i| and |j|@>;
 	}
 }
+
+@ Swapping in C++ can be done with |std::swap| from |algorithm|. In C, you can
+do some XOR magic, define a macro, etc. I'll use a simple temporary variable
+(yes, it gets reallocated on each iteration, sometimes we write code like this too).
+
+@<Swap elements |i| and |j|@>=
+int temp = arr[i];
+arr[i] = arr[j];
+arr[j] = temp;
 
 @ Printing an array is a quick task, for some performance issues and
 terminal padding I've encountered, notice that elements in the vertical
 direction, so the number of the printed row goes from top to bottom.
 
-@<Functions@>=
+@<Utility functions@>=
 void print_array(arr, size, y, wacky)
 int* arr; /* The array to print */
 int size; /* The size of the passed array */
@@ -174,22 +211,33 @@ int y; /* The maximum value of the array */
 char wacky; /* Print each cell with a blinking effect */
 {
 	if (wacky) {
-		attron(A_BLINK);
-		attron(A_BOLD);
-	}
+                @<Turn on bold blinking characters@>;
+        }
 	for (size_t i = 0; i < size; i++)
 		for (int j = 0; j < arr[i]; j++)
 			mvprintw(y - j, i, ch);
-	attroff(A_BLINK);
-	attroff(A_BOLD);
+        @<Turn off bold blinking characters@>;
 	refresh();
 }
+
+@ |ncurses| gives us direct functions to turn on or turn off some ANSI
+effects of characters that are going to be printed next.
+
+@<Turn on bold blinking characters@>=
+attron(A_BLINK);
+attron(A_BOLD);
+
+@ Similarly for turning off some specific attributes.
+
+@<Turn off bold blinking characters@>=
+attroff(A_BLINK);
+attroff(A_BOLD);
 
 @ Before we overwrite the new swapped value, we first need to clear the
 columns up. |clear_x| just writes the defined empty character in the
 range of rows on the specified column.
 
-@<Functions@>=
+@<Utility functions@>=
 void clear_x(y, x)
 int y; /* Number of rows to clear */
 int x; /* The column number of clear */
@@ -212,7 +260,7 @@ are better and more efficient ways to do this, however, I am trying to stay
 faithful to the code as I wrote it so many years ago. Pretty OK for a guy
 who just started learning C.
 
-@<Functions@>=
+@<Utility functions@>=
 void update_screen(y, ind1, ind2, val1, val2, swaps, comps)
 int y; /* The top value of rows to clear */
 int ind1; /* The column number of the first swapped element */
@@ -250,7 +298,7 @@ simple, like first love should be.
 |update_screen| is the {\it magically-super-fast} function that does the frame
 update.
 
-@<Functions@>=
+@<Sorting algorithms@>=
 void bubble_sort(arr, size)
 int *arr; /* The array to sort*/
 size_t size; /* The size of the passed array */
@@ -259,9 +307,7 @@ size_t size; /* The size of the passed array */
 	for (size_t i = 0; i < size - 1; i++)
 		for (size_t j = 0; j < size - i - 1; j++) {
 			if (arr[j] > arr[j + 1]) {
-				int temp = arr[j];
-				arr[j] = arr[j + 1];
-				arr[j + 1] = temp;
+                                @<Swap elements |j| and |j+1|@>;
 				swaps++;
 			}
 			comps++;
@@ -269,6 +315,15 @@ size_t size; /* The size of the passed array */
 				      swaps, comps);
 		}
 }
+
+@ Swapping in the bubble sort will be implemented in the simple temp variable
+way. If further optimization is needed, some other methods can be used. However,
+the compiler itself should optimize this {\bf very} obvious pattern of instructions.
+
+@<Swap elements |j| and |j+1|@>=
+int temp = arr[j];
+arr[j] = arr[j + 1];
+arr[j + 1] = temp;
 
 @* Index.
 Here is a list of the identifiers used, and where they appear. Underlined
