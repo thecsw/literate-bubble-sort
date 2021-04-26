@@ -21,7 +21,9 @@ entire resulting derived work is given a different name and distributed
 under the terms of a permission notice identical to this one.
 }
 
-@* Visualizing sorting algorithms in terminal. This program is trying to
+@* Terminal Sorting.
+
+@ Visualizing sorting algorithms in terminal. This program is trying to
 visualize the process of sorting a shuffled array of numerical
 values by applying the Bubble Sort algorithm. ({\it maybe} more to come)
 
@@ -287,6 +289,8 @@ int comps; /* Number of comparision to show to the user during runtime */
 	attroff(A_BOLD);
 	refresh();
 }
+
+@* Bubble Sort.
 
 @ Bubble Sort is probably one of the most foundational sorting algorithms.
 If you don't know how it works, feel free to search for it and read up on it.
