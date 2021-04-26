@@ -149,6 +149,7 @@ of the screen, it's convenient and doesn't overlap with the blinking array colum
 mvprintw(4, 1, "Sorting algorithm:            Bubble Sort");
 mvprintw(5, 1, "Number of array elements:     %d", arr_size);
 mvprintw(6, 1, "Time taken to sort the array: %f", exec_time);
+mvprintw(8, 1, "Written by Sandy Urazayev");
 
 @ After completing the whole sorting process and when animation is done, all we see
 on our terminal screen is flashing characters, we deallocate the array as we no longer
@@ -156,7 +157,6 @@ need it. Wait for any of the user's input, block until it happens. Proceed with 
 the window session.
 
 @<Deallocate terminal and array@>=
-mvprintw(8, 1, "Written by Sandy Urazayev");
 free(arr);
 getch();
 endwin();
